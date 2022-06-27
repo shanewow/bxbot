@@ -1,6 +1,7 @@
 # BX-bot
 
-[![Build Status](https://travis-ci.com/gazbert/bxbot.svg?branch=master)](https://travis-ci.com/gazbert/bxbot)
+[![Gradle CI](https://github.com/gazbert/bxbot/actions/workflows/gradle.yml/badge.svg?branch=master)](https://github.com/gazbert/bxbot/actions/workflows/gradle.yml)
+[![Maven CI](https://github.com/gazbert/bxbot/actions/workflows/maven.yml/badge.svg?branch=master)](https://github.com/gazbert/bxbot/actions/workflows/maven.yml)
 [![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=gazbert_bxbot&metric=alert_status)](https://sonarcloud.io/dashboard?id=gazbert_bxbot)
 [![Join the chat at https://gitter.im/BX-bot/Lobby](https://badges.gitter.im/BX-bot/Lobby.svg)](https://gitter.im/BX-bot/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)		 	 
  
@@ -8,20 +9,24 @@
 
 <img src="./docs/bxbot-cropped.png" align="right" width="25%" />
 
-BX-bot (_Bex_) is a simple [Bitcoin](https://bitcoin.org) trading bot written in Java for trading on cryptocurrency 
+BX-bot (_Bex_) is a simple Bitcoin trading bot written in Java for trading on cryptocurrency 
 [exchanges](https://bitcoin.org/en/exchanges).
 
 The project contains the basic infrastructure to trade on a [cryptocurrency](http://coinmarketcap.com/) exchange...
 except for the trading strategies - you'll need to write those yourself! A simple 
-[example](./bxbot-strategies/src/main/java/com/gazbert/bxbot/strategies/ExampleScalpingStrategy.java) of a 
-[scalping](http://www.investopedia.com/articles/trading/02/081902.asp) strategy is included to get you started with the
-Trading API - take a look [here](https://github.com/ta4j/ta4j) for more ideas.
+[`ExampleScalpingStrategy`](./bxbot-strategies/src/main/java/com/gazbert/bxbot/strategies/ExampleScalpingStrategy.java) 
+is included to get you started with the Trading API - see [Ta4j](https://github.com/ta4j/ta4j) for more ideas.
 
 Exchange Adapters for using [Bitstamp](https://www.bitstamp.net), [Bitfinex](https://www.bitfinex.com),
 [itBit](https://www.itbit.com/), [Kraken](https://www.kraken.com), [Gemini](https://gemini.com/),
-and [Coinbase Pro](https://pro.coinbase.com/) are included.
+and [Coinbase Pro](https://pro.coinbase.com/) are included. 
 Feel free to improve these or contribute new adapters to the project; that would be 
 [shiny!](https://en.wikipedia.org/wiki/Firefly_(TV_series))
+
+A [`TryModeExchangeAdapter`](./bxbot-exchanges/src/main/java/com/gazbert/bxbot/exchanges/TryModeExchangeAdapter.java) is
+configured by default to delegate public API calls to Bitstamp, but it simulates the private
+API (order management) calls; it's good for testing your initial setup and 
+[paper trading](https://www.investopedia.com/terms/p/papertrade.asp) without actually sending orders to the exchange.
 
 The Trading API provides support for [limit orders](http://www.investopedia.com/terms/l/limitorder.asp)
 traded at the [spot price](http://www.investopedia.com/terms/s/spotprice.asp).
@@ -45,7 +50,7 @@ and released under the [MIT license](http://opensource.org/licenses/MIT).
  
 Trading Strategies and Exchange Adapters are injected by the Trading Engine on startup. The bot uses a simple 
 [YAML](https://en.wikipedia.org/wiki/YAML) backed dependency injection framework to achieve this; the long term goal is
-to convert it into a fully configurable [Spring Boot](http://projects.spring.io/spring-boot/) app.
+to convert it into a fully configurable [Spring Boot](https://spring.io/projects/spring-boot) app.
 
 The bot was designed to fail hard and fast if any unexpected errors occur in the Exchange Adapters or Trading Strategies:
 it will log the error, send an email alert (if configured), and then shut down.
@@ -60,7 +65,7 @@ to be installed on the machine you are going to use to build and run the bot.
 Be mindful of Oracle's recent [licensing changes](https://www.oracle.com/technetwork/java/javase/overview/oracle-jdk-faqs.html)
 and how you intend to use the bot.
 
-You can use [Maven](https://maven.apache.org) or [Gradle](https://gradle.org/) to build the bot.
+You can use [Gradle](https://gradle.org/) or [Maven](https://maven.apache.org) to build the bot.
 The instructions below are for Linux/macOS, but equivalent Windows scripts are included.
 
 Download the latest [Release](https://github.com/gazbert/bxbot/releases) and unzip the bot.
@@ -68,20 +73,18 @@ Download the latest [Release](https://github.com/gazbert/bxbot/releases) and unz
 #### Maven
 1. If you plan on using your own Trading Strategies/Exchange Adapters packaged in separate jar files, you'll need to add
    the dependency in the [bxbot-app/pom.xml](./bxbot-app/pom.xml) - see the commented out dependency examples inside it.
-1. From the project root, run `./mvnw clean assembly:assembly` to produce the distribution 
-   artifacts `bxbot-app-<version>-dist.tar.gz` and `bxbot-app-<version>-dist.zip` in the `./target` folder.
+1. From the project root, run `./mvnw clean package` to produce the distribution 
+   artifacts `bxbot-app-<version>-dist.tar.gz` and `bxbot-app-<version>-dist.zip` in the `./bxbot-app/target` folder.
 1. Copy either the `bxbot-app-<version>-dist.tar.gz` or the `bxbot-app-<version>-dist.zip` onto the machine you 
    want to run the bot and unzip it someplace.
 1. Configure the bot as required - see the main _[Configuration](#configuration)_ section.
    The bot's default configuration uses the 
    [`ExampleScalpingStrategy`](./bxbot-strategies/src/main/java/com/gazbert/bxbot/strategies/ExampleScalpingStrategy.java), 
    but you'll probably want to [code your own](#how-do-i-write-my-own-trading-strategy)! The 
-   [`TestExchangeAdapter`](./bxbot-exchanges/src/main/java/com/gazbert/bxbot/exchanges/TestExchangeAdapter.java) is
-   configured by default - it makes public API calls to [Bitstamp](https://www.bitstamp.net), but stubs out the private
-   API (order management) calls; it's good for testing your initial setup without actually sending orders to the
-   exchange.   
-1. Usage: `./bxbot.sh [start|stop|status]`   
-    
+   [`TryModeExchangeAdapter`](./bxbot-exchanges/src/main/java/com/gazbert/bxbot/exchanges/TryModeExchangeAdapter.java) is
+   configured out of the box to simulate trading with Bitstamp.
+1. Usage: `./bxbot.sh [start|stop|status]`  
+
 #### Gradle    
 1. If you plan on using your own Trading Strategies/Exchange Adapters packaged in separate jar files, you'll need to add
    the dependency in the [bxbot-app/build.gradle](bxbot-app/build.gradle) - see the commented out dependency examples 
@@ -100,8 +103,8 @@ If you want to just play around with the
 and evaluate the bot, Docker is the way to go.
 
 1. Install [Docker](https://docs.docker.com/engine/installation/) on the machine you want to run the bot.
-1. Fetch the BX-bot image from [Docker Hub](https://hub.docker.com/r/gazbert/bxbot/): `docker pull gazbert/bxbot:1.2.0
-1. Run the Docker container: `docker container run --publish=8080:8080 --name bxbot-1.2.0 -it gazbert/bxbot:1.2.0 bash`
+1. Fetch the BX-bot image from [Docker Hub](https://hub.docker.com/r/gazbert/bxbot/): `docker pull gazbert/bxbot:1.4.0`
+1. Run the Docker container: `docker container run --publish=8080:8080 --name bxbot-1.4.0 -it gazbert/bxbot:1.4.0 bash`
 1. Change into the bot's directory: `cd bxbot*`
 1. Configure the bot as described in step 4 of the previous [Maven](#maven) section.
 1. Usage: `./bxbot.sh [start|stop|status]`
@@ -112,14 +115,7 @@ and evaluate the bot, Docker is the way to go.
 ## Build Guide
 If you plan on developing the bot, you'll need JDK 11+ installed on your dev box.
 
-You can use Maven or Gradle to build the bot and pull down the 
-dependencies. BX-bot depends on [Spring Boot](http://projects.spring.io/spring-boot/), 
-[log4j](http://logging.apache.org/log4j), [JavaMail](https://java.net/projects/javamail/pages/Home), 
-[Google Gson](https://code.google.com/p/google-gson/), [Google Guava](https://github.com/google/guava), 
-[Snake YAML](https://bitbucket.org/asomov/snakeyaml), [Java JWT](https://github.com/jwtk/jjwt),
-[H2](https://www.h2database.com/html/main.html), [JAXB](https://javaee.github.io/jaxb-v2/),
-[Jakarta Bean Validation](https://beanvalidation.org/), [Springfox](https://github.com/springfox/springfox),
-and [Swagger](https://github.com/swagger-api/swagger-core).
+You can use Gradle or Maven to build the bot and pull down the dependencies.
 
 The instructions below are for Linux/macOS, but equivalent Windows scripts are included.
 
@@ -138,7 +134,7 @@ Clone the repo locally (master branch).
    To execute both unit and integration tests, use `./gradlew build integrationTests`.
 1. To generate the Javadoc, run `./gradlew javadoc` and look in the `./build/docs/javadoc` folders of the 
    bxbot-trading-api, bxbot-strategy-api, and bxbot-exchange-api modules.
-   
+
 ## Issue & Change Management
 
 Issues and new features are managed using the project [Issue Tracker](https://github.com/gazbert/bxbot/issues) -
@@ -151,7 +147,7 @@ For help and general questions about BX-bot, check out the [Gitter](https://gitt
 ## Testing
 The bot has undergone basic unit testing on a _best-effort_ basis. 
 
-There is a continuous integration build running on [Travis CI](https://travis-ci.com/github/gazbert/bxbot/branches).
+There is a CI build running on [GitHub Actions](https://github.com/gazbert/bxbot/actions).
 
 The latest stable build can always be found on the [Releases](https://github.com/gazbert/bxbot/releases) page. 
 The SNAPSHOT builds on master are active development builds, but the tests should always pass and the bot should always 
@@ -167,7 +163,7 @@ The bot provides a simple plugin framework for:
 * Markets to trade on.
 * Trading Strategies to execute.
 
-It uses [YAML](https://en.wikipedia.org/wiki/YAML) configuration files. These live in the [`config`](./config) folder.
+It uses [YAML](https://yaml.org/) configuration files. These live in the [`config`](./config) folder.
 Any config changes require a restart of the bot to take effect.
 
 Sample configurations for running on different exchanges can be found in the 
@@ -213,6 +209,17 @@ You specify the Exchange Adapter you want BX-bot to use in the
 
 BX-bot supports 1 exchange per bot. 
 This keeps things simple and helps minimise risk: problems on one exchange should not impact trading on another.
+
+The [`TryModeExchangeAdapter`](./bxbot-exchanges/src/main/java/com/gazbert/bxbot/exchanges/TryModeExchangeAdapter.java) is
+configured by default to delegate public API calls to the 
+[`BitstampExchangeAdapter`](./bxbot-exchanges/src/main/java/com/gazbert/bxbot/exchanges/BitstampExchangeAdapter.java). 
+It simulates the private API (order management) calls; it's good for testing your initial setup and 
+paper trading, but you'll eventually want to send live orders to the exchange! You'll still need to 
+configure your API credentials for Bitstamp because the adapter makes an authenticated API call to 
+get the buy/sell fees from the [/balance](https://www.bitstamp.net/api/#account-balance) endpoint.
+
+
+The configuration below shows how to live-trade with Bitstamp:
 
 ```yaml
 exchange:
@@ -362,7 +369,7 @@ You configure the loading of your strategy using either a `className` _or_ a `be
   
 * For the `beanName` value, you must specify the Spring bean name of you Strategy component class for the Trading Engine
   to load and execute. You will also need to annotate your strategy class with `@Component("yourMacdStrategyBean")` - 
-  see the [example strategy](./bxbot-strategies/src/main/java/com/gazbert/bxbot/strategies/ExampleScalpingStrategy.java).
+  see the [`ExampleScalpingStrategy`](./bxbot-strategies/src/main/java/com/gazbert/bxbot/strategies/ExampleScalpingStrategy.java).
   This results in Spring injecting the bean.
   If you set this value to load your strategy, you cannot set the `className` value.        
 
@@ -402,7 +409,7 @@ _"I was seldom able to see an opportunity until it had ceased to be one."_ - Mar
 
 The best place to start is with the
 [`ExampleScalpingStrategy`](./bxbot-strategies/src/main/java/com/gazbert/bxbot/strategies/ExampleScalpingStrategy.java) -
-more ideas can be found in the excellent [ta4j](https://github.com/ta4j/ta4j) project.
+more ideas can be found in the excellent [Ta4j](https://github.com/ta4j/ta4j) project.
 There is also a Trading Strategy specific channel on [Gitter](https://gitter.im/BX-bot/trading-strategies).
   
 Your strategy must implement the 
@@ -555,7 +562,7 @@ logs, but only administrators can update config and restart the bot.
 It is secured using [JWT](https://jwt.io/) and has [TLS](https://en.wikipedia.org/wiki/Transport_Layer_Security)
 support for Production environments. 
 
-You can view the [Swagger](https://swagger.io/tools/swagger-ui/) docs at: 
+You can view the [Springdocs](https://springdoc.org/) at: 
 [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) once you've configured
 and started the bot.
 
@@ -599,7 +606,7 @@ The REST API endpoints require a valid JWT to be passed in the `Authorization` h
 To obtain a JWT, your REST client needs to call the `/api/token` endpoint with a valid username/password 
 contained in the `import.sql` file. See the 
 [Authentication](http://localhost:8080/swagger-ui.html#/Authentication/getTokenUsingPOST) 
-Swagger docs for how to do this.
+Springdocs for how to do this.
 
 The returned JWT expires after 10 mins. Your client should call the `/api/refresh` endpoint with the
 JWT before it expires in order to get a new one. Alternatively, you can re-authenticate using the
